@@ -1,3 +1,21 @@
+# Safe React application
+
+## Goals
+
+- No runtime errors
+- No impossible states
+- Maximuim reusability
+- Ease of adoption on real projects
+
+## Technology stack
+
+- TypeScript
+- React
+- fp-ts / io-ts
+- XState
+
+## Developer guide
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
