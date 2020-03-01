@@ -3,6 +3,7 @@ import * as Either from 'fp-ts/lib/Either'
 import { getTodo } from 'api/get-todo'
 import { useAsyncState, foldError } from './use-async-state'
 import { foldState } from './async-state'
+import { User } from './User'
 
 type Props = {
   todoId: string
@@ -35,6 +36,7 @@ export const Todo = ({ todoId }: Props) => {
             <dt>Completed</dt>
             <dd>{todo.completed ? 'Yes' : 'No'}</dd>
           </dl>
+          <User userId={todo.userId} />
         </div>
       ),
     ),

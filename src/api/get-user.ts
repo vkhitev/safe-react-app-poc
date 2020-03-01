@@ -51,8 +51,6 @@ export const getUser = async ({ userId }: Input): Promise<Output> => {
 
     const body: unknown = await res.json()
 
-    console.log(body)
-
     const validatedBody = UserCodec.decode(body)
 
     if (Either.isLeft(validatedBody)) {
