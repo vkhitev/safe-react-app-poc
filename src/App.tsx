@@ -6,6 +6,7 @@ export const App = () => {
     <div>
       <Todo todoId="1" />
       <Todo todoId="21" />
+      <Todo todoId="0" />
     </div>
   )
 }
