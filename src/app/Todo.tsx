@@ -7,7 +7,7 @@ import React, {
 } from 'react'
 import * as Either from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
-import { getTodo, Output } from 'api/get-todo'
+import { getTodo } from 'api/get-todo'
 
 type Props = {
   todoId: string
@@ -19,33 +19,35 @@ const foldError = <T extends string>(
   return matchers[error]()
 }
 
-const useTodo = (todoId: string) => {
-  const [todoState, setTodoState] = useState<Output | null>(null)
+const useAsyncState = <T, E>(getData: () => Promise<Either.Either<E, T>>) => {
+  const [state, setState] = useState<Either.Either<E, T> | null>(null)
 
   const lastRequestRef = useRef<Promise<unknown>>()
 
-  const loadTodo = useCallback(async () => {
-    setTodoState(null)
+  const load = useCallback(async () => {
+    setState(null)
 
-    const promise = getTodo({ todoId })
+    const promise = getData()
     lastRequestRef.current = promise
 
     const todo = await promise
 
     if (promise === lastRequestRef.current) {
-      setTodoState(todo)
+      setState(todo)
     }
-  }, [todoId])
+  }, [getData])
 
   useEffect(() => {
-    loadTodo()
-  }, [loadTodo])
+    load()
+  }, [load])
 
-  return todoState
+  return state
 }
 
 export const Todo = ({ todoId }: Props) => {
-  const todoState = useTodo(todoId)
+  const todoState = useAsyncState(
+    useCallback(() => getTodo({ todoId }), [todoId]),
+  )
 
   if (todoState === null) {
     return <h2>Loading</h2>
