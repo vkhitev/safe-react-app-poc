@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useCallback, ReactElement } from 'react'
+import React, {
+  useState,
+  useEffect,
+  useCallback,
+  ReactElement,
+  useRef,
+} from 'react'
 import * as Either from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { getTodo, Output } from 'api/get-todo'
@@ -13,17 +19,31 @@ const foldError = <T extends string>(
   return matchers[error]()
 }
 
-export const Todo = ({ todoId }: Props) => {
+const useTodo = (todoId: string) => {
   const [todoState, setTodoState] = useState<Output | null>(null)
 
+  const lastRequestRef = useRef<Promise<unknown>>()
+
   const loadTodo = useCallback(async () => {
-    const todo = await getTodo({ todoId })
-    setTodoState(todo)
+    const promise = getTodo({ todoId })
+    lastRequestRef.current = promise
+
+    const todo = await promise
+
+    if (promise === lastRequestRef.current) {
+      setTodoState(todo)
+    }
   }, [todoId])
 
   useEffect(() => {
     loadTodo()
   }, [loadTodo])
+
+  return todoState
+}
+
+export const Todo = ({ todoId }: Props) => {
+  const todoState = useTodo(todoId)
 
   if (todoState === null) {
     return null
