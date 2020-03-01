@@ -2,9 +2,11 @@ type State<Tag extends string, Payload extends object = {}> = {
   tag: Tag
 } & Payload
 
-type Loading = State<'Loading'>
-type Loaded<T> = State<'Loaded', { value: T }>
-type Failed = State<'Failed', { reason: 'NetworkError' }>
+export type FailureReason = 'NetworkError' | 'ValidationError'
+
+export type Loading = State<'Loading'>
+export type Loaded<T> = State<'Loaded', { value: T }>
+export type Failed = State<'Failed', { reason: FailureReason }>
 
 export type AsyncState<T> = Loading | Loaded<T> | Failed
 
@@ -12,13 +14,15 @@ export const loading: AsyncState<never> = { tag: 'Loading' }
 
 export const loaded = <T = never>(value: T): AsyncState<T> => ({
   tag: 'Loaded',
-  value: value,
+  value,
 })
 
-export const failed: AsyncState<never> = {
+export const failed = <T = never, E extends FailureReason = never>(
+  reason: E,
+): AsyncState<T> => ({
   tag: 'Failed',
-  reason: 'NetworkError',
-}
+  reason,
+})
 
 export const isLoading = <T = never>(
   state: AsyncState<T>,

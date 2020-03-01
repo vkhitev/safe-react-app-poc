@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, ReactElement, useRef } from 'react'
 import * as Either from 'fp-ts/lib/Either'
 import { AsyncState, loading, loaded, failed } from './async-state'
+import { RequestOutput } from 'api/get-todo'
+import { pipe } from 'fp-ts/lib/pipeable'
 
 export const foldError = <T extends string>(
   matchers: { [key in T]: () => ReactElement | null },
@@ -9,7 +11,7 @@ export const foldError = <T extends string>(
 }
 
 export const useAsyncState = <T, E>(
-  getData: () => Promise<Either.Either<E, T>>,
+  getData: () => Promise<RequestOutput<Either.Either<E, T>>>,
 ) => {
   const [state, setState] = useState<AsyncState<Either.Either<E, T>>>(loading)
 
@@ -18,20 +20,13 @@ export const useAsyncState = <T, E>(
   const load = useCallback(async () => {
     setState(loading)
 
-    try {
-      const promise = getData()
-      lastRequestRef.current = promise
+    const promise = getData()
+    lastRequestRef.current = promise
 
-      const value = await promise
+    const value = await promise
 
-      if (promise === lastRequestRef.current) {
-        setState(loaded(value))
-      }
-    } catch (error) {
-      if (error instanceof TypeError) {
-        return setState(failed)
-      }
-      throw error
+    if (promise === lastRequestRef.current) {
+      setState(pipe(value, Either.fold(failed, loaded)))
     }
   }, [getData])
 
