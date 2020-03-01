@@ -25,6 +25,8 @@ const useTodo = (todoId: string) => {
   const lastRequestRef = useRef<Promise<unknown>>()
 
   const loadTodo = useCallback(async () => {
+    setTodoState(null)
+
     const promise = getTodo({ todoId })
     lastRequestRef.current = promise
 
@@ -46,7 +48,7 @@ export const Todo = ({ todoId }: Props) => {
   const todoState = useTodo(todoId)
 
   if (todoState === null) {
-    return null
+    return <h2>Loading</h2>
   }
 
   return pipe(
