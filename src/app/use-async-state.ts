@@ -7,13 +7,12 @@ import { pipe } from 'fp-ts/lib/pipeable'
 export const foldError = <T extends string>(
   matchers: { [key in T]: () => ReactElement | null },
 ) => (error: T) => {
-  return matchers[error]()
+  const matcher = matchers[error]
+  return matcher()
 }
 
-export const useAsyncState = <T, E>(
-  getData: () => Promise<RequestOutput<Either.Either<E, T>>>,
-) => {
-  const [state, setState] = useState<AsyncState<Either.Either<E, T>>>(loading)
+export const useAsyncState = <T>(getData: () => Promise<RequestOutput<T>>) => {
+  const [state, setState] = useState<AsyncState<T>>(loading)
 
   const lastRequestRef = useRef<Promise<unknown>>()
 

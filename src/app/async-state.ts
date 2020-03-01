@@ -1,3 +1,5 @@
+import { absurd } from 'fp-ts/lib/function'
+
 type State<Tag extends string, Payload extends object = {}> = {
   tag: Tag
 } & Payload
@@ -38,4 +40,28 @@ export const isLoaded = <T = never>(
 
 export const isFailed = <T = never>(state: AsyncState<T>): state is Failed => {
   return state.tag === 'Failed'
+}
+
+export type Matchers<T, B> = {
+  loading?: () => B
+  failed?: (reason: FailureReason) => B
+  loaded?: (data: T) => B
+}
+
+export const foldState = <T, B>(
+  state: AsyncState<T>,
+  matchers: Matchers<T, B>,
+): B | null => {
+  switch (state.tag) {
+    case 'Loading':
+      return matchers.loading !== undefined ? matchers.loading() : null
+    case 'Failed':
+      return matchers.failed !== undefined
+        ? matchers.failed(state.reason)
+        : null
+    case 'Loaded':
+      return matchers.loaded !== undefined ? matchers.loaded(state.value) : null
+    default:
+      return absurd(state)
+  }
 }

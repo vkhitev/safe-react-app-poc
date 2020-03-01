@@ -1,9 +1,8 @@
 import React, { useCallback } from 'react'
 import * as Either from 'fp-ts/lib/Either'
-import { pipe } from 'fp-ts/lib/pipeable'
 import { getTodo } from 'api/get-todo'
 import { useAsyncState, foldError } from './use-async-state'
-import { isLoading, isFailed } from './async-state'
+import { foldState } from './async-state'
 
 type Props = {
   todoId: string
@@ -14,17 +13,13 @@ export const Todo = ({ todoId }: Props) => {
     useCallback(() => getTodo({ todoId }), [todoId]),
   )
 
-  if (isLoading(todoState)) {
-    return <h2>Loading</h2>
-  }
-
-  if (isFailed(todoState)) {
-    return <h2>Network error</h2>
-  }
-
-  return pipe(
-    todoState.value,
-    Either.fold(
+  return foldState(todoState, {
+    loading: () => <h2>Loading</h2>,
+    failed: foldError({
+      NetworkError: () => <h2>Network Error</h2>,
+      ValidationError: () => <h2>Validation Error</h2>,
+    }),
+    loaded: Either.fold(
       foldError({
         error_todo_not_found: () => <h2>Todo #{todoId} not found</h2>,
       }),
@@ -43,5 +38,5 @@ export const Todo = ({ todoId }: Props) => {
         </div>
       ),
     ),
-  )
+  })
 }

@@ -20,9 +20,9 @@ export type TodoModel = {
   completed: boolean
 }
 
-export type ResponseError = 'error_todo_not_found'
-
 export type RequestOutput<T> = Either.Either<FailureReason, T>
+
+export type ResponseError = 'error_todo_not_found'
 
 export type Output = RequestOutput<Either.Either<ResponseError, TodoModel>>
 
