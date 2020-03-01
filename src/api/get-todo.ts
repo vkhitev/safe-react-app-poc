@@ -22,7 +22,15 @@ export type ResponseError = 'error_todo_not_found'
 
 export type Output = Either.Either<ResponseError, TodoModel>
 
+const randomInteger = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1)) + min
+}
+
+const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
+
 export const getTodo = async ({ todoId }: Input): Promise<Output> => {
+  await sleep(randomInteger(500, 1000))
+
   const res = await fetch(
     `https://jsonplaceholder.typicode.com/todos/${todoId}`,
   )
