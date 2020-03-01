@@ -31,6 +31,11 @@ const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
 export const getTodo = async ({ todoId }: Input): Promise<Output> => {
   await sleep(randomInteger(500, 1000))
 
+  const shouldThrow = randomInteger(0, 10) > 8
+  if (shouldThrow) {
+    throw new TypeError('Failed to fetch')
+  }
+
   const res = await fetch(
     `https://jsonplaceholder.typicode.com/todos/${todoId}`,
   )

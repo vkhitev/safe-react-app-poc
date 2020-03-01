@@ -1,47 +1,12 @@
-import React, {
-  useState,
-  useEffect,
-  useCallback,
-  ReactElement,
-  useRef,
-} from 'react'
+import React, { useCallback } from 'react'
 import * as Either from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/pipeable'
 import { getTodo } from 'api/get-todo'
+import { useAsyncState, foldError } from './use-async-state'
+import { isLoading, isFailed } from './async-state'
 
 type Props = {
   todoId: string
-}
-
-const foldError = <T extends string>(
-  matchers: { [key in T]: () => ReactElement | null },
-) => (error: T) => {
-  return matchers[error]()
-}
-
-const useAsyncState = <T, E>(getData: () => Promise<Either.Either<E, T>>) => {
-  const [state, setState] = useState<Either.Either<E, T> | null>(null)
-
-  const lastRequestRef = useRef<Promise<unknown>>()
-
-  const load = useCallback(async () => {
-    setState(null)
-
-    const promise = getData()
-    lastRequestRef.current = promise
-
-    const todo = await promise
-
-    if (promise === lastRequestRef.current) {
-      setState(todo)
-    }
-  }, [getData])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
-  return state
 }
 
 export const Todo = ({ todoId }: Props) => {
@@ -49,12 +14,16 @@ export const Todo = ({ todoId }: Props) => {
     useCallback(() => getTodo({ todoId }), [todoId]),
   )
 
-  if (todoState === null) {
+  if (isLoading(todoState)) {
     return <h2>Loading</h2>
   }
 
+  if (isFailed(todoState)) {
+    return <h2>Network error</h2>
+  }
+
   return pipe(
-    todoState,
+    todoState.value,
     Either.fold(
       foldError({
         error_todo_not_found: () => <h2>Todo #{todoId} not found</h2>,
