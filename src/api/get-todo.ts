@@ -20,11 +20,12 @@ export type TodoModel = {
   completed: boolean
 }
 
-export type RequestOutput<T> = Either.Either<FailureReason, T>
-
 export type ResponseError = 'error_todo_not_found'
 
-export type Output = RequestOutput<Either.Either<ResponseError, TodoModel>>
+export type Output = Either.Either<
+  FailureReason,
+  Either.Either<ResponseError, TodoModel>
+>
 
 const randomInteger = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
