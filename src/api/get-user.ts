@@ -1,6 +1,8 @@
 import * as t from 'io-ts'
 import * as Either from 'fp-ts/lib/Either'
-import { FailureReason } from 'app/async-state'
+import * as TaskEither from 'fp-ts/lib/TaskEither'
+import { flow } from 'fp-ts/lib/function'
+import { request, readDecodeJson } from './shared'
 
 type Input = {
   userId: string
@@ -30,43 +32,16 @@ const UserCodec = t.type({
   }),
 })
 
-export type UserModel = t.TypeOf<typeof UserCodec>
+export const getUser = flow(
+  ({ userId }: Input) =>
+    request(`https://jsonplaceholder.typicode.com/users/${userId}`),
 
-export type ResponseError = 'error_user_not_found'
-
-export type Output = Either.Either<
-  FailureReason,
-  Either.Either<ResponseError, UserModel>
->
-
-export const getUser = async ({ userId }: Input): Promise<Output> => {
-  try {
-    const res = await fetch(
-      `https://jsonplaceholder.typicode.com/users/${userId}`,
-    )
-
+  TaskEither.map(res => {
     if (res.status === 404) {
-      return Either.right(Either.left('error_user_not_found'))
+      return Either.left('error_user_not_found' as const)
     }
+    return Either.right(res)
+  }),
 
-    const body: unknown = await res.json()
-
-    const validatedBody = UserCodec.decode(body)
-
-    if (Either.isLeft(validatedBody)) {
-      return Either.left('ValidationError')
-    }
-
-    const value = validatedBody.right
-
-    return Either.right(Either.right(value))
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      return Either.left('NetworkError')
-    }
-    if (error instanceof SyntaxError) {
-      return Either.left('ValidationError')
-    }
-    throw error
-  }
-}
+  readDecodeJson(UserCodec),
+)

@@ -27,7 +27,7 @@ export const Todo = ({ todoId }: Props) => {
       todo => (
         <div>
           <h2>
-            Todo #{todo.todoId} by{' '}
+            Todo #{todo.id} by{' '}
             <a href={`/users/${todo.userId}`}>user #{todo.userId}</a>
           </h2>
           <dl>
@@ -36,7 +36,7 @@ export const Todo = ({ todoId }: Props) => {
             <dt>Completed</dt>
             <dd>{todo.completed ? 'Yes' : 'No'}</dd>
           </dl>
-          <User userId={todo.userId} />
+          <User userId={todo.userId.toString()} />
         </div>
       ),
     ),

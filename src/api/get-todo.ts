@@ -1,6 +1,9 @@
 import * as t from 'io-ts'
 import * as Either from 'fp-ts/lib/Either'
-import { FailureReason } from 'app/async-state'
+import { flow } from 'fp-ts/lib/function'
+import * as TaskEither from 'fp-ts/lib/TaskEither'
+import * as Task from 'fp-ts/lib/Task'
+import { request, readDecodeJson } from './shared'
 
 type Input = {
   todoId: string
@@ -13,67 +16,30 @@ const TodoCodec = t.type({
   completed: t.boolean,
 })
 
-export type TodoModel = {
-  todoId: string
-  userId: string
-  title: string
-  completed: boolean
-}
-
-export type ResponseError = 'error_todo_not_found'
-
-export type Output = Either.Either<
-  FailureReason,
-  Either.Either<ResponseError, TodoModel>
->
-
 const randomInteger = (min: number, max: number) => {
   return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-const sleep = (ms: number) => new Promise(res => setTimeout(res, ms))
+export const getTodo = flow(
+  ({ todoId }: Input) =>
+    request(`https://jsonplaceholder.typicode.com/todos/${todoId}`),
 
-export const getTodo = async ({ todoId }: Input): Promise<Output> => {
-  try {
-    await sleep(randomInteger(500, 1000))
+  ma => Task.delay(randomInteger(500, 1000))(ma),
 
+  TaskEither.chain(ma => {
     const shouldThrow = randomInteger(0, 10) > 7
     if (shouldThrow) {
-      throw new TypeError('Failed to fetch')
+      return TaskEither.left('NetworkError' as const)
     }
-    const res = await fetch(
-      `https://jsonplaceholder.typicode.com/todos/${todoId}`,
-    )
+    return TaskEither.right(ma)
+  }),
 
+  TaskEither.map(res => {
     if (res.status === 404) {
-      return Either.right(Either.left('error_todo_not_found'))
+      return Either.left('error_todo_not_found' as const)
     }
+    return Either.right(res)
+  }),
 
-    const body: unknown = await res.json()
-
-    const validatedBody = TodoCodec.decode(body)
-
-    if (Either.isLeft(validatedBody)) {
-      return Either.left('ValidationError')
-    }
-
-    const value = validatedBody.right
-
-    return Either.right(
-      Either.right({
-        todoId: value.id.toString(),
-        userId: value.userId.toString(),
-        title: value.title,
-        completed: value.completed,
-      }),
-    )
-  } catch (error) {
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      return Either.left('NetworkError')
-    }
-    if (error instanceof SyntaxError) {
-      return Either.left('ValidationError')
-    }
-    throw error
-  }
-}
+  readDecodeJson(TodoCodec),
+)
