@@ -1,5 +1,9 @@
 {
-  "editor.formatOnSave": false,
+  "editor.formatOnSave": true,
+  "javascript.format.enable": false,
+  "typescript.format.enable": false,
+  "css.validate": false,
+  "stylelint.enable": true,
   "eslint.enable": true,
   "eslint.validate": [
     "javascript",
@@ -11,12 +15,14 @@
   "files.exclude": {
     "**/node_modules": true,
     "build": true,
-    "coverage": true
+    "coverage": true,
+    "src/assets/main.css": true
   },
   "files.watcherExclude": {
     "**/.git/objects/**": true,
     "**/.git/subtree-cache/**": true,
-    "**/node_modules/**": true
+    "**/node_modules/**": true,
+    "src/assets/main.css": true
   },
   "javascript.implicitProjectConfig.checkJs": false,
   "javascript.validate.enable": false,
