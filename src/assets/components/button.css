@@ -17,3 +17,15 @@
 .btn-secondary:hover {
   @apply bg-orange-700;
 }
+
+.btn-pill {
+  @apply rounded-full;
+}
+
+.btn-outlined {
+  @apply bg-transparent text-blue-700 border border-blue-500;
+}
+
+.btn-outlined:hover {
+  @apply bg-blue-500 text-white border-transparent;
+}

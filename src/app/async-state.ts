@@ -65,3 +65,9 @@ export const foldState = <T, B>(
       return absurd(state)
   }
 }
+
+export const fold = <T, B>(matchers: Matchers<T, B>) => (
+  state: AsyncState<T>,
+): B | null => {
+  return foldState(state, matchers)
+}

@@ -17,7 +17,7 @@ export const App = () => {
     <div className="flex justify-center items-center min-h-screen">
       <div className="max-w-sm rounded overflow-hidden shadow-lg p-6 w-full max-w-sm">
         <div className="mb-3">
-          <Todo todoId={counter.toString()} />
+          <Todo todoId={counter} />
         </div>
         <div className="flex justify-between">
           <button onClick={prevId} className="btn btn-primary mr-3">

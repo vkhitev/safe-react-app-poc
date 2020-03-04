@@ -2,11 +2,11 @@ import * as t from 'io-ts'
 import * as Either from 'fp-ts/lib/Either'
 import { flow } from 'fp-ts/lib/function'
 import * as TaskEither from 'fp-ts/lib/TaskEither'
-import * as Task from 'fp-ts/lib/Task'
 import { request, readDecodeJson } from './shared'
+import { memoizeDeep } from './memoize-deep'
 
 type Input = {
-  todoId: string
+  todoId: number
 }
 
 const TodoCodec = t.type({
@@ -16,30 +16,18 @@ const TodoCodec = t.type({
   completed: t.boolean,
 })
 
-const randomInteger = (min: number, max: number) => {
-  return Math.floor(Math.random() * (max - min + 1)) + min
-}
+export const getTodo = memoizeDeep(
+  flow(
+    ({ todoId }: Input) =>
+      request(`https://jsonplaceholder.typicode.com/todos/${todoId}`),
 
-export const getTodo = flow(
-  ({ todoId }: Input) =>
-    request(`https://jsonplaceholder.typicode.com/todos/${todoId}`),
+    TaskEither.map(res => {
+      if (res.status === 404) {
+        return Either.left('error_todo_not_found' as const)
+      }
+      return Either.right(res)
+    }),
 
-  ma => Task.delay(randomInteger(500, 1000))(ma),
-
-  TaskEither.chain(ma => {
-    const shouldThrow = randomInteger(0, 10) > 7
-    if (shouldThrow) {
-      return TaskEither.left('NetworkError' as const)
-    }
-    return TaskEither.right(ma)
-  }),
-
-  TaskEither.map(res => {
-    if (res.status === 404) {
-      return Either.left('error_todo_not_found' as const)
-    }
-    return Either.right(res)
-  }),
-
-  readDecodeJson(TodoCodec),
+    readDecodeJson(TodoCodec),
+  ),
 )

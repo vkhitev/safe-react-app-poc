@@ -18,7 +18,7 @@ export const foldError = <T extends string>(
 }
 
 export const useAsyncState = <T>(
-  getData: () => TaskEither.TaskEither<FailureReason, T>,
+  getData: TaskEither.TaskEither<FailureReason, T>,
 ) => {
   const [state, setState] = useState<AsyncState<T>>(loading)
 
@@ -27,7 +27,7 @@ export const useAsyncState = <T>(
   const load = useCallback(async () => {
     setState(loading)
 
-    const promise = getData()()
+    const promise = getData()
     lastRequestRef.current = promise
 
     const value = await promise
